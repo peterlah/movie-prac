@@ -1,38 +1,55 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 function App() {
-  const [todo, setTodo] = useState("");
-  const [todos, setTodos] = useState([]);
-  const onChange = (event) => { setTodo(event.target.value); };
-  const onSubmit = (event) => {
-    event.preventDefault();
-    if (todo ===""){
-      return;
-    }
-    setTodo("");
-    // setTodos([...todos, todo]);
-    setTodos((currentArray) => [todo, ...currentArray]);
-  };
-  
-  useEffect(() => {
-    console.log(todos);
-  }, [todos]);
+    const [loading, setLoading] = useState(true);
+    const [coins, setCoins] = useState([]);
+    const [amount, setAmount] = useState(0);
 
-  return (
-    <div>
-      <h1>To Do List ({todos.length})</h1>
-      <form onSubmit={onSubmit}>
-        <input onChange={onChange} value={todo} type='text' placeholder='Write your to do...'/>
-        <button>Add To Do</button>
-      </form>
-      <hr />
-      {todos.map((item, index) => {
-        return (
-            <li key={index}>{item}</li>
-        );
-      })}
-    </div>
-  );
+    const onChangeAmount = (event) => {
+        setAmount(event.target.value);
+    };
+
+    useEffect(() => {
+        fetch("https://api.coinpaprika.com/v1/tickers")
+            .then((response) => response.json())
+            .then((json) => {
+                setCoins(json);
+                setLoading(false);
+            });
+    }, []);
+
+    return (
+        <div>
+            <h1>The Coins! {loading ? "" : `(${coins.length})`}</h1>
+            {loading ? (
+                <strong>Loading...</strong>
+            ) : (
+                <div>
+                    <select>
+                        {coins.map((coin) => {
+                            return (
+                                <option
+                                    key={coin.id}
+                                    value={coin.quotes.USD.price}
+                                >
+                                    {coin.name} ({coin.symbol}: $
+                                    {coin.quotes.USD.price} USD) /{" "}
+                                    {amount / coin.quotes.USD.price}{" "}
+                                    {coin.symbol}
+                                </option>
+                            );
+                        })}
+                    </select>
+                    <input
+                        value={amount}
+                        onChange={onChangeAmount}
+                        type="number"
+                        placeholder="Convert USD($) to Coin"
+                    />
+                </div>
+            )}
+        </div>
+    );
 }
 
 export default App;
