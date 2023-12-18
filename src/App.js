@@ -2,50 +2,41 @@ import { useEffect, useState } from "react";
 
 function App() {
     const [loading, setLoading] = useState(true);
-    const [coins, setCoins] = useState([]);
-    const [amount, setAmount] = useState(0);
+    const [movies, setMovies] = useState([]);
 
-    const onChangeAmount = (event) => {
-        setAmount(event.target.value);
+    const getMovies = async () => {
+        const response = await fetch(
+            "https://yts.mx/api/v2/list_movies.json?minimum_rating=9&sort_by=year",
+        );
+        const json = await response.json();
+        setMovies(json.data.movies);
+        setLoading(false);
     };
 
     useEffect(() => {
-        fetch("https://api.coinpaprika.com/v1/tickers")
-            .then((response) => response.json())
-            .then((json) => {
-                setCoins(json);
-                setLoading(false);
-            });
+        getMovies();
     }, []);
-
     return (
         <div>
-            <h1>The Coins! {loading ? "" : `(${coins.length})`}</h1>
             {loading ? (
-                <strong>Loading...</strong>
+                <div>Loading...</div>
             ) : (
                 <div>
-                    <select>
-                        {coins.map((coin) => {
-                            return (
-                                <option
-                                    key={coin.id}
-                                    value={coin.quotes.USD.price}
-                                >
-                                    {coin.name} ({coin.symbol}: $
-                                    {coin.quotes.USD.price} USD) /{" "}
-                                    {amount / coin.quotes.USD.price}{" "}
-                                    {coin.symbol}
-                                </option>
-                            );
-                        })}
-                    </select>
-                    <input
-                        value={amount}
-                        onChange={onChangeAmount}
-                        type="number"
-                        placeholder="Convert USD($) to Coin"
-                    />
+                    {movies.map((movie) => (
+                        <div key={movie.id}>
+                            <img
+                                src={movie.medium_cover_image}
+                                alt={movie.title}
+                            />
+                            <h2>{movie.title}</h2>
+                            <p>{movie.summary}</p>
+                            <ul>
+                                {movie.genres.map((g, index) => (
+                                    <li key={index}>{g}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
                 </div>
             )}
         </div>
